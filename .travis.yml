@@ -1,14 +1,15 @@
 language: node_js
 node_js:
-  - node
+- node
 branches:
   only:
-    - master
+  - master
 script:
-  - npm install
-  - npm run build
+- npm install
+- npm run build
 deploy:
   provider: heroku
   api_key:
     secure: eUZSMBs6uspkNPSH5NKOtdD8MhCrwObXbWsIVY+T7orwoyk5JBTcxKIg4LGnk/w950lLTjgl87ZFXRLSbLcmKGNuj/ztbWEHIpg16CLH3QXXKQV6Jn35kydzaUd4CyhYsxjn8XCg2NmzcSj0ezTVqpnaJvyBvs5E8WZXuIYlJ9i8+7xj+20qh2N4jwHPAtYoW6LatQ0dbl8MGU18INB6HJ8OaAhRVodqVWGDmqzr5k5nNP4+OR/ZGqhxR2O1JrnKjJaAGIdUYqPatSI5Avv288XJZJIEU6oFAIzucFMJY+MUD9hWl0mVYZMJ3vYxEB8NAE3vNKTL59nVwnfEdic33ReE0SpdQCoQ4OmmID3i/ckQ4NvzIb5mmh079K/xH5w5i0JI8QM3ii8ECbbB5x+s9FQNsqzLU4LxXjbtGMk6m0i29BJnljCGs1z5bFnRHMy9gUN02XmHgiAglLBDTbs7fjtyC9AXwTjTXZRPN6HVt/ulRxPXviPeqnUSxtVXIygl0ycAHY3X3Q05PYLl/qZBhSSWEQxe6G/7JKB+DmuGP2ahS9E/B2IHZJK+nYTZf+LLG9Szp15c/6mjVRhwxppIqR+FOIpwJ5rTDFBu9rwoBrRvY9SmLz5zBFRr9lhcqiahlvPMjQa/KSgCIb9ou7yq+icBjLx8TBQgckIcCwKxueQ=
   app: meteologica-test
+  on: master
