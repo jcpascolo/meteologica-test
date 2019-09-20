@@ -66,13 +66,20 @@ export default {
           type: "numeric",
           range: 5,
           tickAmount: 5,
+          labels: {
+            formatter: function(value, timestamp) {
+              // console.log("EN DONDE QUIERO");
+              // console.log(value);
+              // console.log(timestamp);
+              return "pepe: " + value; // The formatter function overrides format property
+            }
+          },
           tooltip: {
             formatter: function(val, opts) {
-              console.log("EN DONDE QUIERO");
-              console.log(val);
-              console.log(opts.dataPointIndex);
-              console.log(opts.series);
-              console.log(opts.series[0][opts.dataPointIndex]);
+              // console.log(val);
+              // console.log(opts.dataPointIndex);
+              // console.log(opts.series);
+              // console.log(opts.series[0][opts.dataPointIndex]);
               return "00:00:" + val;
             }
           }
