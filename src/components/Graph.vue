@@ -1,34 +1,47 @@
 <template>
-  <div class="container">
-    <div class="col-6">
-      <VueApexCharts
-        ref="realtimeChart"
-        type="area"
-        height="350"
-        :options="chartOptions"
-        :series="series"
-      />
-    </div>
+  <div>
+    <VueApexCharts
+      ref="realtimeChart"
+      type="area"
+      height="300"
+      :options="chartOptions"
+      :series="series"
+    />
   </div>
 </template>
 
 <script>
-let datas = require("json-loader!yaml-loader!../../data.yml");
+// let datas = require("json-loader!yaml-loader!../../data.yml");
 import VueApexCharts from "vue-apexcharts";
 
-// let allDatas = [];
+let secondsToHour = totalSeconds => {
+  let hours = Math.floor(totalSeconds / 3600);
+  let minutes = Math.floor((totalSeconds - hours * 3600) / 60);
+  let seconds = totalSeconds - hours * 3600 - minutes * 60;
+
+  let timeString =
+    hours.toString().padStart(2, "0") +
+    ":" +
+    minutes.toString().padStart(2, "0") +
+    ":" +
+    seconds.toString().padStart(2, "0");
+
+  return timeString;
+};
 
 export default {
   name: "Graph",
   components: {
     VueApexCharts
   },
+  props: ["datas", "endUnit", "chartTitle"],
   data() {
     return {
       allDatas: [],
       counter: 0,
       series: [
         {
+          name: this.endUnit,
           data: []
         }
       ],
@@ -38,7 +51,7 @@ export default {
             enabled: true,
             easing: "linear",
             dynamicAnimation: {
-              speed: 1000
+              speed: 4000
             }
           },
           toolbar: {
@@ -54,33 +67,37 @@ export default {
         stroke: {
           curve: "smooth"
         },
-
         title: {
-          text: "Dynamic Updating Chart",
-          align: "left"
+          text: this.chartTitle,
+          align: "center"
         },
         markers: {
           size: 0
         },
         xaxis: {
           type: "numeric",
-          range: 5,
+          range: 300,
           tickAmount: 5,
+          min: 0,
           labels: {
-            formatter: function(value, timestamp) {
-              // console.log("EN DONDE QUIERO");
-              // console.log(value);
-              // console.log(timestamp);
-              return "pepe: " + value; // The formatter function overrides format property
+            formatter: function(value) {
+              return secondsToHour(value);
             }
           },
           tooltip: {
-            formatter: function(val, opts) {
-              // console.log(val);
-              // console.log(opts.dataPointIndex);
-              // console.log(opts.series);
-              // console.log(opts.series[0][opts.dataPointIndex]);
-              return "00:00:" + val;
+            formatter: function(value) {
+              return secondsToHour(value);
+            }
+          }
+        },
+        yaxis: {
+          decimalsInFloat: 4
+        },
+        tooltip: {
+          enabled: true,
+          y: {
+            title: {
+              formatter: seriesName => seriesName
             }
           }
         },
@@ -91,26 +108,15 @@ export default {
     };
   },
   mounted() {
-    this.intervals();
+    EventHandler.$on("updateDatas", () => {
+      this.$refs.realtimeChart.updateSeries([
+        {
+          data: this.datas
+        }
+      ]);
+    });
   },
-  methods: {
-    intervals() {
-      window.setInterval(() => {
-        this.allDatas.push({
-          // x: datas.power.values[this.counter].time,
-          x: this.counter + 1,
-          y: datas.power.values[this.counter].value
-        });
-
-        this.$refs.realtimeChart.updateSeries([
-          {
-            data: this.allDatas
-          }
-        ]);
-        this.counter++;
-      }, 6000);
-    }
-  }
+  methods: {}
 };
 </script>
 
