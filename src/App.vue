@@ -6,6 +6,7 @@
           <Graph
             :datas="allTemperatureLoadedDatas"
             :endUnit="temperatureEndUnit"
+            decimals="2"
             chartTitle="Temperatura media"
           />
         </div>
@@ -20,7 +21,12 @@
       </div>
       <div class="row">
         <div class="col-12 col-md-6 px-0 px-md-3">
-          <Graph :datas="allPowerLoadedDatas" :endUnit="powerEndUnit" chartTitle="Energía" />
+          <Graph
+            :datas="allPowerLoadedDatas"
+            :endUnit="powerEndUnit"
+            decimals="4"
+            chartTitle="Energía"
+          />
         </div>
         <div class="col-12 col-md-6">
           <DataSection

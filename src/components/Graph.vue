@@ -34,7 +34,7 @@ export default {
   components: {
     VueApexCharts
   },
-  props: ["datas", "endUnit", "chartTitle"],
+  props: ["datas", "endUnit", "chartTitle", "decimals"],
   data() {
     return {
       allDatas: [],
@@ -69,16 +69,27 @@ export default {
         },
         title: {
           text: this.chartTitle,
-          align: "center"
+          align: "center",
+          offsetY: 20,
+          style: {
+            fontSize: "16px",
+            color: "#263238"
+          }
         },
         markers: {
-          size: 0
+          size: 0,
+          colors: "#023645",
+          strokeColors: "#fff"
         },
         xaxis: {
           type: "numeric",
           range: 300,
           tickAmount: 5,
-          min: 0,
+          style: {
+            colors: "#ffffff",
+            fontSize: "12px"
+          },
+          rotate: 0,
           labels: {
             formatter: function(value) {
               return secondsToHour(value);
@@ -91,7 +102,7 @@ export default {
           }
         },
         yaxis: {
-          decimalsInFloat: 4
+          decimalsInFloat: this.decimals
         },
         tooltip: {
           enabled: true,
