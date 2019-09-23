@@ -4,11 +4,15 @@
       <div class="row">
         <div class="col-12 col-md-6 px-0 px-md-3">
           <Graph
-            :datas="allTemperatureLoadedDatas"
+            id="0"
+            :allDatas="allTemperatureLoadedDatas"
+            :averageMinuteData="minuteAverageTemperatureDatas"
             :endUnit="temperatureEndUnit"
             decimals="2"
             chartTitle="Temperatura media"
           />
+          <button @click="changeToAverageMinute(0)">Change to all datas</button>
+          <button @click="changeToAverageMinute(0)">Change to minute average</button>
         </div>
         <div class="col-12 col-md-6">
           <DataSection
@@ -22,11 +26,15 @@
       <div class="row">
         <div class="col-12 col-md-6 px-0 px-md-3">
           <Graph
-            :datas="allPowerLoadedDatas"
+            id="1"
+            :allDatas="allPowerLoadedDatas"
+            :averageMinuteData="minuteAveragePowerDatas"
             :endUnit="powerEndUnit"
             decimals="4"
             chartTitle="Energía"
           />
+          <button @click="changeToAverageMinute(1)">Change to all datas</button>
+          <button @click="changeToAverageMinute(1)">Change to minute average</button>
         </div>
         <div class="col-12 col-md-6">
           <DataSection
@@ -217,10 +225,18 @@ export default {
       window.setInterval(() => {
         EventHandler.$emit("updateDatas");
       }, 5000);
+    },
+
+    changeToAverageMinute(chartId) {
+      EventHandler.$emit("changeChartDatas", chartId);
+      EventHandler.$emit("updateDatas");
     }
   }
 };
 </script>
 
 <style>
+.chart {
+  background: linear-gradient(90deg, #009688, #3f51b5);
+}
 </style>

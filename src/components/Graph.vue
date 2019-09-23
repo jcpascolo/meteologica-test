@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="chart">
     <VueApexCharts
       ref="realtimeChart"
       type="area"
@@ -11,8 +11,8 @@
 </template>
 
 <script>
-// let datas = require("json-loader!yaml-loader!../../data.yml");
 import VueApexCharts from "vue-apexcharts";
+import { type } from "os";
 
 let secondsToHour = totalSeconds => {
   let hours = Math.floor(totalSeconds / 3600);
@@ -34,10 +34,17 @@ export default {
   components: {
     VueApexCharts
   },
-  props: ["datas", "endUnit", "chartTitle", "decimals"],
+  props: [
+    "id",
+    "allDatas",
+    "averageMinuteData",
+    "endUnit",
+    "chartTitle",
+    "decimals"
+  ],
   data() {
     return {
-      allDatas: [],
+      showAllDatas: true,
       counter: 0,
       series: [
         {
@@ -51,7 +58,7 @@ export default {
             enabled: true,
             easing: "linear",
             dynamicAnimation: {
-              speed: 4000
+              speed: 2000
             }
           },
           toolbar: {
@@ -120,11 +127,25 @@ export default {
   },
   mounted() {
     EventHandler.$on("updateDatas", () => {
-      this.$refs.realtimeChart.updateSeries([
-        {
-          data: this.datas
-        }
-      ]);
+      if (this.showAllDatas) {
+        this.$refs.realtimeChart.updateSeries([
+          {
+            data: this.allDatas
+          }
+        ]);
+      } else {
+        this.$refs.realtimeChart.updateSeries([
+          {
+            data: this.averageMinuteData
+          }
+        ]);
+      }
+    });
+
+    EventHandler.$on("changeChartDatas", chartId => {
+      if (chartId == this.id) {
+        this.showAllDatas = !this.showAllDatas;
+      }
     });
   },
   methods: {}
