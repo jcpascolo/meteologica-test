@@ -11,8 +11,8 @@
             decimals="2"
             chartTitle="Temperatura media"
           />
-          <button @click="changeToAverageMinute(0)">Change to all datas</button>
-          <button @click="changeToAverageMinute(0)">Change to minute average</button>
+          <button @click="changeChartDatas(0)">Change to all datas</button>
+          <button @click="changeChartDatas(0)">Change to minute average</button>
         </div>
         <div class="col-12 col-md-6">
           <DataSection
@@ -33,8 +33,8 @@
             decimals="4"
             chartTitle="Energía"
           />
-          <button @click="changeToAverageMinute(1)">Change to all datas</button>
-          <button @click="changeToAverageMinute(1)">Change to minute average</button>
+          <button @click="changeChartDatas(1)">Change to all datas</button>
+          <button @click="changeChartDatas(1)">Change to minute average</button>
         </div>
         <div class="col-12 col-md-6">
           <DataSection
@@ -74,6 +74,7 @@ export default {
   },
   data() {
     return {
+      fields: [],
       allTemperatureLoadedDatas: [],
       allPowerLoadedDatas: [],
       minuteAverageTemperatureDatas: [],
@@ -92,11 +93,44 @@ export default {
     };
   },
   mounted() {
+    Object.keys(Datas).forEach((field, index) => {
+      //endUnit and changeUnitFunc are hardcoded but in a real case they could be in the data file
+      //and it would be scalable (more than two fields)
+      let endUnit = field == "temperature" ? "Celsius" : "kWh";
+      let changeUnitFunc =
+        field == "temperature" ? this.kelvinToCelsius : this.powerToEnergy;
+      this.fields.push({
+        id: index,
+        fieldName: field,
+        allLoadedDatas: [],
+        minuteAverageDatas: [],
+        currentDatas: [parseFloat(Datas[field].values[0].value)],
+        startUnit: Datas[field].unit,
+        endUnit,
+        changeUnitFunc,
+        lastValue: {
+          time: Datas[field].values[0].time,
+          originalData: Datas[field].values[0].value,
+          transformedData: changeUnitFunc(Datas[field].values[0].value)
+        },
+        lastMinAverageValue: {
+          time: Datas[field].values[0].time,
+          originalData: this.averageResult([
+            parseFloat(Datas[field].values[0].value)
+          ]),
+          transformedData: changeUnitFunc([
+            parseFloat(Datas[field].values[0].value)
+          ])
+        }
+      });
+    });
+
     this.currentTemperatureDatas.push(
       parseFloat(Datas.temperature.values[0].value)
     );
     this.currentPowerDatas.push(parseFloat(Datas.power.values[0].value));
     this.intervals();
+    this.updateDatas();
   },
   methods: {
     hourToSecond(hour) {
@@ -113,19 +147,12 @@ export default {
         : changes[startUnit.substr(0, startUnit.length - 1)] /
             changes[endUnit.substr(0, endUnit.length - 1)];
     },
-    averageTemperature(currentDatasTemp) {
-      let averageTemperature = 0;
-      currentDatasTemp.forEach(temp => {
-        averageTemperature += temp;
+    averageResult(currentDatas) {
+      let average = 0;
+      currentDatas.forEach(value => {
+        average += value;
       });
-      return averageTemperature / currentDatasTemp.length;
-    },
-    averagePower(currentDatasPower) {
-      let averagePower = 0;
-      currentDatasPower.forEach(power => {
-        averagePower += power;
-      });
-      return averagePower / currentDatasPower.length;
+      return average / currentDatas.length;
     },
     kelvinToCelsius(kelvin) {
       let change = this.changeUnit(Datas.temperature.unit, "unit");
@@ -157,15 +184,15 @@ export default {
           this.minuteAverageTemperatureDatas.push({
             x: this.hourToSecond(Datas.temperature.values[this.counter].time),
             y: this.kelvinToCelsius(
-              this.averageTemperature(this.currentTemperatureDatas)
+              this.averageResult(this.currentTemperatureDatas)
             )
           });
 
           this.lastMinAverageTemp = {
             time: Datas.temperature.values[this.counter].time,
-            originalData: this.averageTemperature(this.currentTemperatureDatas),
+            originalData: this.averageResult(this.currentTemperatureDatas),
             transformedData: this.kelvinToCelsius(
-              this.averageTemperature(this.currentTemperatureDatas)
+              this.averageResult(this.currentTemperatureDatas)
             )
           };
 
@@ -198,14 +225,14 @@ export default {
         ) {
           this.minuteAveragePowerDatas.push({
             x: this.hourToSecond(Datas.power.values[this.counter].time),
-            y: this.powerToEnergy(this.averagePower(this.currentPowerDatas))
+            y: this.powerToEnergy(this.averageResult(this.currentPowerDatas))
           });
 
           this.lastMinAveragePower = {
             time: Datas.power.values[this.counter].time,
-            originalData: this.averagePower(this.currentPowerDatas),
+            originalData: this.averageResult(this.currentPowerDatas),
             transformedData: this.powerToEnergy(
-              this.averagePower(this.currentPowerDatas)
+              this.averageResult(this.currentPowerDatas)
             )
           };
 
@@ -221,13 +248,15 @@ export default {
 
         this.counter++;
       }, 5000);
+    },
 
+    updateDatas() {
       window.setInterval(() => {
         EventHandler.$emit("updateDatas");
       }, 5000);
     },
 
-    changeToAverageMinute(chartId) {
+    changeChartDatas(chartId) {
       EventHandler.$emit("changeChartDatas", chartId);
       EventHandler.$emit("updateDatas");
     }
@@ -236,7 +265,7 @@ export default {
 </script>
 
 <style>
-.chart {
+body {
   background: linear-gradient(90deg, #009688, #3f51b5);
 }
 </style>
