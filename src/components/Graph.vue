@@ -12,7 +12,6 @@
 
 <script>
 import VueApexCharts from "vue-apexcharts";
-import { type } from "os";
 
 let secondsToHour = totalSeconds => {
   let hours = Math.floor(totalSeconds / 3600);
@@ -49,7 +48,7 @@ export default {
       series: [
         {
           name: this.endUnit,
-          data: []
+          data: this.allDatas
         }
       ],
       chartOptions: {
@@ -58,7 +57,7 @@ export default {
             enabled: true,
             easing: "linear",
             dynamicAnimation: {
-              speed: 2000
+              speed: 1000
             }
           },
           toolbar: {
@@ -72,7 +71,11 @@ export default {
           enabled: false
         },
         stroke: {
-          curve: "smooth"
+          show: true,
+          curve: "smooth",
+          colors: ["#333333"],
+          lineCap: "butt",
+          width: 3
         },
         title: {
           text: this.chartTitle,
@@ -126,7 +129,29 @@ export default {
     };
   },
   mounted() {
-    EventHandler.$on("updateDatas", () => {
+    // this.series.data = this.allDatas;
+    EventHandler.$on("updateDatas", this.updateDatas);
+
+    EventHandler.$on("changeChartDatas", chartId => {
+      if (chartId == this.id) {
+        this.showAllDatas = !this.showAllDatas;
+      }
+    });
+
+    EventHandler.$on("stopUpdateDatas", chartId => {
+      if (chartId == this.id) {
+        EventHandler.$off("updateDatas", this.updateDatas);
+      }
+    });
+
+    EventHandler.$on("restartUpdateDatas", chartId => {
+      if (chartId == this.id) {
+        EventHandler.$on("updateDatas", this.updateDatas);
+      }
+    });
+  },
+  methods: {
+    updateDatas() {
       if (this.showAllDatas) {
         this.$refs.realtimeChart.updateSeries([
           {
@@ -140,15 +165,8 @@ export default {
           }
         ]);
       }
-    });
-
-    EventHandler.$on("changeChartDatas", chartId => {
-      if (chartId == this.id) {
-        this.showAllDatas = !this.showAllDatas;
-      }
-    });
-  },
-  methods: {}
+    }
+  }
 };
 </script>
 

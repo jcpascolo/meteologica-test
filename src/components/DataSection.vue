@@ -1,15 +1,16 @@
 <template>
-  <div class="d-flex justify-content-center">
-    <div>
+  <div class="row d-flex justify-content-center">
+    <div class="col-6">
       <h5>Last Recibed Data</h5>
       <div>Time: {{lastData.time}}</div>
-      <div>Original Data: {{lastData.originalData.toFixed(2)}}{{startUnit}}</div>
-      <div>Transformed Data: {{lastData.transformedData.toFixed(2)}}{{endUnit}}</div>
-
+      <div>Original Data: {{parseFloat(lastData.originalData).toFixed(2)}} {{startUnit}}</div>
+      <div>Transformed Data: {{parseFloat(lastData.transformedData).toFixed(2)}} {{endUnit}}</div>
+    </div>
+    <div class="col-6">
       <h5>Last Minute Average Recibed Data</h5>
       <div>Time: {{averageMinuteData.time}}</div>
-      <div>Original Data: {{averageMinuteData.originalData.toFixed(2)}}{{startUnit}}</div>
-      <div>Transformed Data: {{averageMinuteData.transformedData.toFixed(2)}}{{endUnit}}</div>
+      <div>Original Data: {{parseFloat(averageMinuteData.originalData).toFixed(2)}} {{startUnit}}</div>
+      <div>Transformed Data: {{parseFloat(averageMinuteData.transformedData).toFixed(2)}} {{endUnit}}</div>
     </div>
   </div>
 </template>

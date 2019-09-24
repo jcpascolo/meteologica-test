@@ -1,48 +1,34 @@
 <template>
   <div id="app">
     <div class="container-fluid">
-      <div class="row">
+      <div class="row card my-2 mx-auto" v-for="field in fields" :key="field.id">
         <div class="col-12 col-md-6 px-0 px-md-3">
           <Graph
-            id="0"
-            :allDatas="allTemperatureLoadedDatas"
-            :averageMinuteData="minuteAverageTemperatureDatas"
-            :endUnit="temperatureEndUnit"
-            decimals="2"
-            chartTitle="Temperatura media"
-          />
-          <button @click="changeChartDatas(0)">Change to all datas</button>
-          <button @click="changeChartDatas(0)">Change to minute average</button>
-        </div>
-        <div class="col-12 col-md-6">
-          <DataSection
-            :lastData="lastTemp"
-            :averageMinuteData="lastMinAverageTemp"
-            :startUnit="temperatureStartUnit"
-            :endUnit="temperatureEndUnit"
+            :id="field.id"
+            :allDatas="field.allLoadedDatas"
+            :averageMinuteData="field.minuteAverageDatas"
+            :endUnit="field.endUnit"
+            :decimals="field.accuracy"
+            :chartTitle="field.title"
           />
         </div>
-      </div>
-      <div class="row">
-        <div class="col-12 col-md-6 px-0 px-md-3">
-          <Graph
-            id="1"
-            :allDatas="allPowerLoadedDatas"
-            :averageMinuteData="minuteAveragePowerDatas"
-            :endUnit="powerEndUnit"
-            decimals="4"
-            chartTitle="Energía"
-          />
-          <button @click="changeChartDatas(1)">Change to all datas</button>
-          <button @click="changeChartDatas(1)">Change to minute average</button>
-        </div>
-        <div class="col-12 col-md-6">
-          <DataSection
-            :lastData="lastPower"
-            :averageMinuteData="lastMinAveragePower"
-            :startUnit="powerStartUnit"
-            :endUnit="powerEndUnit"
-          />
+        <div class="col-12 col-md-6 d-flex">
+          <div class="row my-auto">
+            <div class="col-12 px-2 px-md-3" @click="changeChartDatas(field.id)">
+              <ToggleButton />
+            </div>
+            <div class="col-12">
+              <DataSection
+                :lastData="field.lastValue"
+                :averageMinuteData="field.lastMinAverageValue"
+                :startUnit="field.startUnit"
+                :endUnit="field.endUnit"
+              />
+              <button @click="stopUpdateDatas(field.id)">Stop</button>
+              <button @click="restartUpdateDatas(field.id)">Start</button>
+              <button @click="field.isTotallyStopped = !field.isTotallyStopped">Stop / Start</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -54,6 +40,7 @@ let Datas = require("json-loader!yaml-loader!../data.yml");
 
 import Graph from "./components/Graph";
 import DataSection from "./components/DataSection";
+import ToggleButton from "./components/ToggleButton";
 
 let changes = {
   m: 1e-3,
@@ -70,40 +57,42 @@ export default {
   name: "app",
   components: {
     Graph,
-    DataSection
+    DataSection,
+    ToggleButton
   },
   data() {
     return {
       fields: [],
-      allTemperatureLoadedDatas: [],
-      allPowerLoadedDatas: [],
-      minuteAverageTemperatureDatas: [],
-      minuteAveragePowerDatas: [],
-      currentTemperatureDatas: [],
-      currentPowerDatas: [],
-      temperatureStartUnit: Datas.temperature.unit,
-      powerStartUnit: Datas.power.unit,
-      temperatureEndUnit: "ºC",
-      powerEndUnit: "kWh",
-      lastTemp: {},
-      lastMinAverageTemp: {},
-      lastPower: {},
-      lastMinAveragePower: {},
-      counter: 0
+      isActive: true
     };
   },
   mounted() {
     Object.keys(Datas).forEach((field, index) => {
-      //endUnit and changeUnitFunc are hardcoded but in a real case they could be in the data file
-      //and it would be scalable (more than two fields)
+      //endUnit, changeUnitFunc, accuracy and chartTitle are hardcoded but in a real case
+      //they could be in the data file and it would be scalable (more than two fields)
       let endUnit = field == "temperature" ? "Celsius" : "kWh";
       let changeUnitFunc =
         field == "temperature" ? this.kelvinToCelsius : this.powerToEnergy;
+      let accuracy = field == "temperature" ? 2 : 4;
+      let title = field == "temperature" ? "Average Temperature" : "Energy";
+
       this.fields.push({
         id: index,
         fieldName: field,
-        allLoadedDatas: [],
-        minuteAverageDatas: [],
+        allLoadedDatas: [
+          {
+            x: this.hourToSecond(Datas[field].values[0].time),
+            y: changeUnitFunc(Datas[field].values[0].value)
+          }
+        ],
+        minuteAverageDatas: [
+          {
+            x: this.hourToSecond(Datas[field].values[0].time),
+            y: changeUnitFunc(
+              this.averageResult([parseFloat(Datas[field].values[0].value)])
+            )
+          }
+        ],
         currentDatas: [parseFloat(Datas[field].values[0].value)],
         startUnit: Datas[field].unit,
         endUnit,
@@ -121,14 +110,15 @@ export default {
           transformedData: changeUnitFunc([
             parseFloat(Datas[field].values[0].value)
           ])
-        }
+        },
+        accuracy,
+        title,
+        counter: 1,
+        isTotallyStopped: false
       });
     });
 
-    this.currentTemperatureDatas.push(
-      parseFloat(Datas.temperature.values[0].value)
-    );
-    this.currentPowerDatas.push(parseFloat(Datas.power.values[0].value));
+    EventHandler.$emit("updateDatas");
     this.intervals();
     this.updateDatas();
   },
@@ -164,89 +154,61 @@ export default {
     },
     intervals() {
       window.setInterval(() => {
-        this.allTemperatureLoadedDatas.push({
-          x: this.hourToSecond(Datas.temperature.values[this.counter].time),
-          y: this.kelvinToCelsius(Datas.temperature.values[this.counter].value)
+        this.fields.forEach(field => {
+          if (!field.isTotallyStopped) {
+            field.allLoadedDatas.push({
+              x: this.hourToSecond(
+                Datas[field.fieldName].values[field.counter].time
+              ),
+              y: field.changeUnitFunc(
+                Datas[field.fieldName].values[field.counter].value
+              )
+            });
+
+            field.lastValue = {
+              time: Datas[field.fieldName].values[field.counter].time,
+              originalData: Datas[field.fieldName].values[field.counter].value,
+              transformedData: field.changeUnitFunc(
+                Datas[field.fieldName].values[field.counter].value
+              )
+            };
+
+            if (
+              this.hourToSecond(
+                Datas[field.fieldName].values[field.counter].time
+              ) %
+                60 ==
+              0
+            ) {
+              field.minuteAverageDatas.push({
+                x: this.hourToSecond(
+                  Datas[field.fieldName].values[field.counter].time
+                ),
+                y: field.changeUnitFunc(this.averageResult(field.currentDatas))
+              });
+
+              field.lastMinAverageValue = {
+                time: Datas[field.fieldName].values[field.counter].time,
+                originalData: this.averageResult([
+                  parseFloat(Datas[field.fieldName].values[field.counter].value)
+                ]),
+                transformedData: field.changeUnitFunc([
+                  parseFloat(Datas[field.fieldName].values[field.counter].value)
+                ])
+              };
+
+              field.currentDatas = [];
+              field.currentDatas.push(
+                parseFloat(Datas[field.fieldName].values[field.counter].value)
+              );
+            } else {
+              field.currentDatas.push(
+                parseFloat(Datas[field.fieldName].values[field.counter].value)
+              );
+            }
+            field.counter++;
+          }
         });
-
-        this.lastTemp = {
-          time: Datas.temperature.values[this.counter].time,
-          originalData: Datas.temperature.values[this.counter].value,
-          transformedData: this.kelvinToCelsius(
-            Datas.temperature.values[this.counter].value
-          )
-        };
-
-        if (
-          this.hourToSecond(Datas.temperature.values[this.counter].time) % 60 ==
-          0
-        ) {
-          this.minuteAverageTemperatureDatas.push({
-            x: this.hourToSecond(Datas.temperature.values[this.counter].time),
-            y: this.kelvinToCelsius(
-              this.averageResult(this.currentTemperatureDatas)
-            )
-          });
-
-          this.lastMinAverageTemp = {
-            time: Datas.temperature.values[this.counter].time,
-            originalData: this.averageResult(this.currentTemperatureDatas),
-            transformedData: this.kelvinToCelsius(
-              this.averageResult(this.currentTemperatureDatas)
-            )
-          };
-
-          this.currentTemperatureDatas = [];
-          this.currentTemperatureDatas.push(
-            parseFloat(Datas.temperature.values[this.counter].value)
-          );
-        } else {
-          this.currentTemperatureDatas.push(
-            parseFloat(Datas.temperature.values[this.counter].value)
-          );
-        }
-
-        this.allPowerLoadedDatas.push({
-          x: this.hourToSecond(Datas.power.values[this.counter].time),
-          y: this.powerToEnergy(Datas.power.values[this.counter].value)
-        });
-
-        this.lastPower = {
-          time: Datas.power.values[this.counter].time,
-          originalData: parseFloat(Datas.power.values[this.counter].value),
-          transformedData: this.powerToEnergy(
-            Datas.power.values[this.counter].value
-          )
-        };
-
-        if (
-          this.hourToSecond(Datas.power.values[this.counter].time) % 60 ==
-          0
-        ) {
-          this.minuteAveragePowerDatas.push({
-            x: this.hourToSecond(Datas.power.values[this.counter].time),
-            y: this.powerToEnergy(this.averageResult(this.currentPowerDatas))
-          });
-
-          this.lastMinAveragePower = {
-            time: Datas.power.values[this.counter].time,
-            originalData: this.averageResult(this.currentPowerDatas),
-            transformedData: this.powerToEnergy(
-              this.averageResult(this.currentPowerDatas)
-            )
-          };
-
-          this.currentPowerDatas = [];
-          this.currentPowerDatas.push(
-            parseFloat(Datas.power.values[this.counter].value)
-          );
-        } else {
-          this.currentPowerDatas.push(
-            parseFloat(Datas.power.values[this.counter].value)
-          );
-        }
-
-        this.counter++;
       }, 5000);
     },
 
@@ -254,6 +216,14 @@ export default {
       window.setInterval(() => {
         EventHandler.$emit("updateDatas");
       }, 5000);
+    },
+
+    stopUpdateDatas(chartId) {
+      EventHandler.$emit("stopUpdateDatas", chartId);
+    },
+
+    restartUpdateDatas(chartId) {
+      EventHandler.$emit("restartUpdateDatas", chartId);
     },
 
     changeChartDatas(chartId) {
@@ -264,8 +234,23 @@ export default {
 };
 </script>
 
-<style>
+
+<style lang="scss">
 body {
   background: linear-gradient(90deg, #009688, #3f51b5);
+}
+
+.card {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  background-color: white;
+}
+
+.card:hover {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.6);
 }
 </style>
