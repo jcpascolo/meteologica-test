@@ -44,6 +44,7 @@ export default {
   data() {
     return {
       showAllDatas: true,
+      isStopped: false,
       counter: 0,
       series: [
         {
@@ -99,11 +100,12 @@ export default {
             colors: "#ffffff",
             fontSize: "12px"
           },
-          rotate: 0,
           labels: {
             formatter: function(value) {
               return secondsToHour(value);
-            }
+            },
+            rotate: -10,
+            rotateAlways: true
           },
           tooltip: {
             formatter: function(value) {
@@ -129,24 +131,22 @@ export default {
     };
   },
   mounted() {
-    // this.series.data = this.allDatas;
     EventHandler.$on("updateDatas", this.updateDatas);
-
     EventHandler.$on("changeChartDatas", chartId => {
       if (chartId == this.id) {
         this.showAllDatas = !this.showAllDatas;
+        this.updateDatas();
       }
     });
 
-    EventHandler.$on("stopUpdateDatas", chartId => {
+    EventHandler.$on("startStopChartUpdateDatas", chartId => {
       if (chartId == this.id) {
-        EventHandler.$off("updateDatas", this.updateDatas);
-      }
-    });
-
-    EventHandler.$on("restartUpdateDatas", chartId => {
-      if (chartId == this.id) {
-        EventHandler.$on("updateDatas", this.updateDatas);
+        this.isStopped = !this.isStopped;
+        if (this.isStopped) {
+          EventHandler.$off("updateDatas", this.updateDatas);
+        } else {
+          EventHandler.$on("updateDatas", this.updateDatas);
+        }
       }
     });
   },
@@ -169,6 +169,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-</style>

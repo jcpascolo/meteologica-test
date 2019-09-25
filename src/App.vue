@@ -14,7 +14,7 @@
         </div>
         <div class="col-12 col-md-6 d-flex">
           <div class="row my-auto">
-            <div class="col-12 px-2 px-md-3" @click="changeChartDatas(field.id)">
+            <div class="col-12 py-2 px-2 px-md-3" @click="changeChartDatas(field.id)">
               <ToggleButton leftText="all datas" rightText="min average" />
             </div>
             <div class="col-12">
@@ -25,13 +25,20 @@
                 :endUnit="field.endUnit"
                 :decimals="field.accuracy"
               />
-              <button @click="stopUpdateDatas(field.id)">Stop</button>
-              <button @click="restartUpdateDatas(field.id)">Start</button>
+              <div class="col-12 py-2 px-2 px-md-3" @click="startStopChartUpdateDatas(field.id)">
+                <p
+                  class="toggle-info text-center"
+                >Click if you want to stop/start just the chart update</p>
+                <ToggleButton leftText="start" rightText="stop" />
+              </div>
               <div
-                class="col-12 px-2 px-md-3"
+                class="col-12 py-2 px-2 px-md-3"
                 @click="field.isTotallyStopped = !field.isTotallyStopped"
               >
-                <ToggleButton leftText="run" rightText="stop" />
+                <p
+                  class="toggle-info text-center"
+                >Click if you want to stop/start the chart and the information update</p>
+                <ToggleButton leftText="start" rightText="stop" />
               </div>
             </div>
           </div>
@@ -68,8 +75,7 @@ export default {
   },
   data() {
     return {
-      fields: [],
-      isActive: true
+      fields: []
     };
   },
   mounted() {
@@ -99,7 +105,7 @@ export default {
             )
           }
         ],
-        currentDatas: [parseFloat(Datas[field].values[0].value)],
+        lastMinuteDatas: [parseFloat(Datas[field].values[0].value)],
         startUnit: Datas[field].unit,
         endUnit,
         changeUnitFunc,
@@ -143,12 +149,12 @@ export default {
         : changes[startUnit.substr(0, startUnit.length - 1)] /
             changes[endUnit.substr(0, endUnit.length - 1)];
     },
-    averageResult(currentDatas) {
+    averageResult(lastMinuteDatas) {
       let average = 0;
-      currentDatas.forEach(value => {
+      lastMinuteDatas.forEach(value => {
         average += value;
       });
-      return average / currentDatas.length;
+      return average / lastMinuteDatas.length;
     },
     kelvinToCelsius(kelvin) {
       let change = this.changeUnit(Datas.temperature.unit, "unit");
@@ -162,56 +168,45 @@ export default {
       window.setInterval(() => {
         this.fields.forEach(field => {
           if (!field.isTotallyStopped) {
-            let formatedLastValue = field.changeUnitFunc(
-              Datas[field.fieldName].values[field.counter].value
-            );
+            let currentTime = Datas[field.fieldName].values[field.counter].time;
+            let currentValue =
+              Datas[field.fieldName].values[field.counter].value;
+
+            let timeInSeconds = this.hourToSecond(currentTime);
+
+            let formatedLastValue = field.changeUnitFunc(currentValue);
 
             field.allLoadedDatas.push({
-              x: this.hourToSecond(
-                Datas[field.fieldName].values[field.counter].time
-              ),
+              x: timeInSeconds,
               y: formatedLastValue
             });
 
             field.lastValue = {
-              time: Datas[field.fieldName].values[field.counter].time,
-              originalData: Datas[field.fieldName].values[field.counter].value,
+              time: currentTime,
+              originalData: currentValue,
               transformedData: formatedLastValue
             };
 
-            if (
-              this.hourToSecond(
-                Datas[field.fieldName].values[field.counter].time
-              ) %
-                60 ==
-              0
-            ) {
+            if (timeInSeconds % 60 == 0) {
               let formatedLastMinAverageValue = field.changeUnitFunc(
-                this.averageResult(field.currentDatas)
+                this.averageResult(field.lastMinuteDatas)
               );
+
               field.minuteAverageDatas.push({
-                x: this.hourToSecond(
-                  Datas[field.fieldName].values[field.counter].time
-                ),
+                x: timeInSeconds,
                 y: formatedLastMinAverageValue
               });
 
               field.lastMinAverageValue = {
-                time: Datas[field.fieldName].values[field.counter].time,
-                originalData: this.averageResult([
-                  parseFloat(Datas[field.fieldName].values[field.counter].value)
-                ]),
+                time: currentTime,
+                originalData: this.averageResult(field.lastMinuteDatas),
                 transformedData: formatedLastMinAverageValue
               };
 
-              field.currentDatas = [];
-              field.currentDatas.push(
-                parseFloat(Datas[field.fieldName].values[field.counter].value)
-              );
+              field.lastMinuteDatas = [];
+              field.lastMinuteDatas.push(parseFloat(currentValue));
             } else {
-              field.currentDatas.push(
-                parseFloat(Datas[field.fieldName].values[field.counter].value)
-              );
+              field.lastMinuteDatas.push(parseFloat(currentValue));
             }
             field.counter++;
           }
@@ -225,17 +220,12 @@ export default {
       }, 5000);
     },
 
-    stopUpdateDatas(chartId) {
-      EventHandler.$emit("stopUpdateDatas", chartId);
-    },
-
-    restartUpdateDatas(chartId) {
-      EventHandler.$emit("restartUpdateDatas", chartId);
+    startStopChartUpdateDatas(chartId) {
+      EventHandler.$emit("startStopChartUpdateDatas", chartId);
     },
 
     changeChartDatas(chartId) {
       EventHandler.$emit("changeChartDatas", chartId);
-      EventHandler.$emit("updateDatas");
     }
   }
 };
@@ -245,19 +235,31 @@ export default {
 <style lang="scss">
 body {
   background: linear-gradient(90deg, #009688, #3f51b5);
+  font-family: "Source Sans Pro", sans-serif;
+}
+
+p {
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .card {
-  width: 99.5%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   transition: 0.3s;
   background-color: white;
 }
 
 .card:hover {
-  width: 100%;
-  padding-top: 14px !important;
-  padding-bottom: 14px !important;
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.6);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.toggle-info {
+  font-size: 0.7rem;
+  word-spacing: 3px;
+  font-style: italic;
 }
 </style>

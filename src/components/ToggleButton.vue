@@ -1,7 +1,7 @@
 <template>
   <div class="buttons-change-data" @click="isActive = !isActive">
-    <button :class="{ active: isActive}" class="w-50 custom-btn">{{leftText}}</button>
-    <button :class="{ active: !isActive}" class="w-50 custom-btn">{{rightText}}</button>
+    <div :class="{ active: isActive}" class="w-50 custom-btn">{{leftText}}</div>
+    <div :class="{ active: !isActive}" class="w-50 custom-btn">{{rightText}}</div>
   </div>
 </template>
 
