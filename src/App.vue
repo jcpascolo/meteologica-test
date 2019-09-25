@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <div class="container-fluid">
-      <div class="row card my-2 mx-auto" v-for="field in fields" :key="field.id">
+    <div class="container-fluid px-1 px-sm-2 px-md-3">
+      <div class="row card my-3 py-2 mx-auto" v-for="field in fields" :key="field.id">
         <div class="col-12 col-md-6 px-0 px-md-3">
           <Graph
             :id="field.id"
@@ -15,7 +15,7 @@
         <div class="col-12 col-md-6 d-flex">
           <div class="row my-auto">
             <div class="col-12 px-2 px-md-3" @click="changeChartDatas(field.id)">
-              <ToggleButton />
+              <ToggleButton leftText="all datas" rightText="min average" />
             </div>
             <div class="col-12">
               <DataSection
@@ -23,10 +23,16 @@
                 :averageMinuteData="field.lastMinAverageValue"
                 :startUnit="field.startUnit"
                 :endUnit="field.endUnit"
+                :decimals="field.accuracy"
               />
               <button @click="stopUpdateDatas(field.id)">Stop</button>
               <button @click="restartUpdateDatas(field.id)">Start</button>
-              <button @click="field.isTotallyStopped = !field.isTotallyStopped">Stop / Start</button>
+              <div
+                class="col-12 px-2 px-md-3"
+                @click="field.isTotallyStopped = !field.isTotallyStopped"
+              >
+                <ToggleButton leftText="run" rightText="stop" />
+              </div>
             </div>
           </div>
         </div>
@@ -156,21 +162,21 @@ export default {
       window.setInterval(() => {
         this.fields.forEach(field => {
           if (!field.isTotallyStopped) {
+            let formatedLastValue = field.changeUnitFunc(
+              Datas[field.fieldName].values[field.counter].value
+            );
+
             field.allLoadedDatas.push({
               x: this.hourToSecond(
                 Datas[field.fieldName].values[field.counter].time
               ),
-              y: field.changeUnitFunc(
-                Datas[field.fieldName].values[field.counter].value
-              )
+              y: formatedLastValue
             });
 
             field.lastValue = {
               time: Datas[field.fieldName].values[field.counter].time,
               originalData: Datas[field.fieldName].values[field.counter].value,
-              transformedData: field.changeUnitFunc(
-                Datas[field.fieldName].values[field.counter].value
-              )
+              transformedData: formatedLastValue
             };
 
             if (
@@ -180,11 +186,14 @@ export default {
                 60 ==
               0
             ) {
+              let formatedLastMinAverageValue = field.changeUnitFunc(
+                this.averageResult(field.currentDatas)
+              );
               field.minuteAverageDatas.push({
                 x: this.hourToSecond(
                   Datas[field.fieldName].values[field.counter].time
                 ),
-                y: field.changeUnitFunc(this.averageResult(field.currentDatas))
+                y: formatedLastMinAverageValue
               });
 
               field.lastMinAverageValue = {
@@ -192,9 +201,7 @@ export default {
                 originalData: this.averageResult([
                   parseFloat(Datas[field.fieldName].values[field.counter].value)
                 ]),
-                transformedData: field.changeUnitFunc([
-                  parseFloat(Datas[field.fieldName].values[field.counter].value)
-                ])
+                transformedData: formatedLastMinAverageValue
               };
 
               field.currentDatas = [];
@@ -241,16 +248,16 @@ body {
 }
 
 .card {
-  padding-top: 8px;
-  padding-bottom: 8px;
+  width: 99.5%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   transition: 0.3s;
   background-color: white;
 }
 
 .card:hover {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  width: 100%;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
   box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.6);
 }
 </style>

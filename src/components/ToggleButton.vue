@@ -1,13 +1,14 @@
 <template>
   <div class="buttons-change-data" @click="isActive = !isActive">
-    <button :class="{ active: isActive}" class="w-50 custom-btn">All Datas</button>
-    <button :class="{ active: !isActive}" class="w-50 custom-btn">Min Average</button>
+    <button :class="{ active: isActive}" class="w-50 custom-btn">{{leftText}}</button>
+    <button :class="{ active: !isActive}" class="w-50 custom-btn">{{rightText}}</button>
   </div>
 </template>
 
 <script>
 export default {
   name: "ToggleButton",
+  props: ["leftText", "rightText"],
   data() {
     return {
       isActive: true
@@ -24,6 +25,8 @@ export default {
 
   .custom-btn {
     height: 100% !important;
+    text-transform: uppercase;
+    word-spacing: 5px;
     display: inline-block;
     font-weight: bold;
     color: white;
@@ -36,7 +39,7 @@ export default {
     background-color: transparent;
     border: 1px solid transparent;
     padding: 0.3rem 0.5rem;
-    font-size: 1rem;
+    font-size: 0.8rem;
     line-height: 1.5;
     border-radius: 0.25rem;
     transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out,
