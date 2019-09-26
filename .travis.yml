@@ -6,8 +6,6 @@ branches:
     - master
 script:
   - npm install
-  - npm install -g @vuese/cli
-  - vuese gen
   - npm run build
   - cp -r website dist
   - cp README.md dist

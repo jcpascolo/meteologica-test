@@ -11,8 +11,14 @@ app.use(serveStatic(__dirname + "/dist"));
 app.use(
   csp({
     directives: {
-      defaultSrc: [`'self'`],
-      imgSrc: [`'self'`]
+      scriptSrc: [
+        `'self'`,
+        `'unsafe-inline'`,
+        `'unsafe-eval'`,
+        `unpkg.com/docute@4/dist/docute.js`
+      ]
+      // defaultSrc: [`'self'`],
+      // imgSrc: [`'self'`, `imgur.com`]
     }
   })
 );
