@@ -9,8 +9,6 @@ script:
   - npm run build
   - cp -r website dist
   - cp README.md dist
-  - ls -la dist
-  - ls -la dist/website
 deploy:
   provider: heroku
   api_key:
