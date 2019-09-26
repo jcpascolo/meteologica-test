@@ -6,11 +6,24 @@
 </template>
 
 <script>
+//This is a styled button component. It changes everytime that is clicked.
 export default {
   name: "ToggleButton",
-  props: ["leftText", "rightText"],
+  props: {
+    //The leftside text of the button.
+    leftText: {
+      type: String,
+      default: "on"
+    },
+    //The rightside text of the button.
+    rightText: {
+      type: String,
+      default: "off"
+    }
+  },
   data() {
     return {
+      //It says which part of the button is actived.
       isActive: true
     };
   }

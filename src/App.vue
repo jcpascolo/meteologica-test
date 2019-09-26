@@ -49,12 +49,14 @@
 </template>
 
 <script>
+//To load all the datas from the the .yml file.
 let Datas = require("json-loader!yaml-loader!../data.yml");
 
 import Graph from "./components/Graph";
 import DataSection from "./components/DataSection";
 import ToggleButton from "./components/ToggleButton";
 
+//Multiples and submultiples of all unit of measurement.
 let changes = {
   m: 1e-3,
   c: 1e-2,
@@ -66,19 +68,26 @@ let changes = {
   M: 1e4
 };
 
+//This is the main component, where all the data processing happens.
 export default {
-  name: "app",
+  name: "App",
+
   components: {
     Graph,
     DataSection,
     ToggleButton
   },
+
   data() {
     return {
+      //The array that contains one object per field that is on the .yml file.
+      //In that case we have two fields, temperature and power
       fields: []
     };
   },
+
   mounted() {
+    //At the begining we iterate throght de keys on the file, in this case only two, temperature and power
     Object.keys(Datas).forEach((field, index) => {
       //endUnit, changeUnitFunc, accuracy and chartTitle are hardcoded but in a real case
       //they could be in the data file and it would be scalable (more than two fields)
@@ -88,53 +97,98 @@ export default {
       let accuracy = field == "temperature" ? 2 : 4;
       let title = field == "temperature" ? "Average Temperature" : "Energy";
 
+      //For each field we save
       this.fields.push({
+        //The id. It is useful to know wich chart should be stopped in case of stop updates.
         id: index,
+
+        //The fielName. It is useful to find the right datas in the .yml file every 5 seconds (to know if we want the temperature or the power data).
         fieldName: field,
+
+        //The allLoadedDatas. It saves all the datas already transformed in the wanted unit.
         allLoadedDatas: [
           {
             x: this.hourToSecond(Datas[field].values[0].time),
             y: changeUnitFunc(Datas[field].values[0].value)
           }
         ],
+
+        //The minuteAverageDatas. It saves all the average datas per minute.
         minuteAverageDatas: [
           {
             x: this.hourToSecond(Datas[field].values[0].time),
-            y: changeUnitFunc(
-              this.averageResult([parseFloat(Datas[field].values[0].value)])
-            )
+            y:
+              field == "temperature"
+                ? changeUnitFunc(
+                    this.averageResult([
+                      parseFloat(Datas[field].values[0].value)
+                    ])
+                  )
+                : changeUnitFunc(
+                    this.averageResult([
+                      parseFloat(Datas[field].values[0].value)
+                    ]),
+                    60
+                  )
           }
         ],
+
+        //The lastMinuteDatas. It saves only the values of the last minute in order to make the average.
         lastMinuteDatas: [parseFloat(Datas[field].values[0].value)],
+
+        //The startUnit. It has the initial unit of the datas.
         startUnit: Datas[field].unit,
+
+        //The endUnit. It has the final unit that we want to achieve.
         endUnit,
+
+        //The changeUnitFunc. It has the function which transform the datas from startUnit to endUnit.
         changeUnitFunc,
+
+        //The lastValue. It save the last value taken form the file.
         lastValue: {
           time: Datas[field].values[0].time,
           originalData: Datas[field].values[0].value,
           transformedData: changeUnitFunc(Datas[field].values[0].value)
         },
+
+        //The lastMinAverageValue. It save the last minute average value that was calculated.
         lastMinAverageValue: {
           time: Datas[field].values[0].time,
           originalData: this.averageResult([
             parseFloat(Datas[field].values[0].value)
           ]),
-          transformedData: changeUnitFunc([
-            parseFloat(Datas[field].values[0].value)
-          ])
+          transformedData:
+            field == "temperature"
+              ? changeUnitFunc([parseFloat(Datas[field].values[0].value)])
+              : changeUnitFunc([parseFloat(Datas[field].values[0].value)], 60)
         },
+
+        //The accuracy. It has the accuracy of the values. It means, to which number of decimal it should be rounded.
         accuracy,
+
+        //The title. It has the title of the chart.
         title,
+
+        //The counter. It saves the index of the next data that should be taken from the file.
         counter: 1,
+
+        //The isTotallyStopped. If it is true it means that it must not be updated (all the fields of the field, even the chart).
         isTotallyStopped: false
       });
     });
 
+    //To send the update to the children.
+    //Fire for the first data and every 5 seconds.
     EventHandler.$emit("updateDatas");
     this.intervals();
     this.updateDatas();
   },
+
   methods: {
+    //@vuese
+    //To transform the hour string that we recieve from the .yml file into seconds number.
+    //@arg 'hour' => It is a String that recieve the hour in the format hh:mm:ss.
     hourToSecond(hour) {
       let dividedTime = hour.split(":");
       return (
@@ -143,12 +197,21 @@ export default {
         parseInt(dividedTime[2])
       );
     },
+
+    //@vuese
+    //To changes between multiples and submultiples of a unit.
+    //@arg 'startUnit' => It is a String that recieve the initial unit.
+    //@arg 'endUnit' => It is a String that recieve the final unit.
     changeUnit(startUnit, endUnit) {
       return endUnit == "unit"
         ? changes[startUnit.substr(0, startUnit.length - 1)] / changes["unit"]
         : changes[startUnit.substr(0, startUnit.length - 1)] /
             changes[endUnit.substr(0, endUnit.length - 1)];
     },
+
+    //@vuese
+    //To calculate the average of an array that is passed as an argument.
+    //@arg 'lastMinuteDatas' => It has the values of the last minute.
     averageResult(lastMinuteDatas) {
       let average = 0;
       lastMinuteDatas.forEach(value => {
@@ -156,14 +219,27 @@ export default {
       });
       return average / lastMinuteDatas.length;
     },
+
+    //@vuese
+    //To change from Kelvin temperature to Celsius temperature.
+    //@arg 'kelvin' => It has the Kelvin temperature.
     kelvinToCelsius(kelvin) {
       let change = this.changeUnit(Datas.temperature.unit, "unit");
       return kelvin * change - 273.15;
     },
-    powerToEnergy(power, time = 60) {
+
+    //@vuese
+    //To change from MW power to kWh energy.
+    //@arg 'power' => It has the Wattios power.
+    //@arg 'time' => It has the time in second to calculate the portion of hour.
+    powerToEnergy(power, time = 5) {
+      let timeChangedToHour = parseInt(time, 10) / 3600;
       let change = this.changeUnit(Datas.power.unit, "kW");
-      return (power * change) / time;
+      return power * change * timeChangedToHour;
     },
+
+    //@vuese
+    //To take one data every 5 seconds an update the chart and the info section if it is necessary.
     intervals() {
       window.setInterval(() => {
         this.fields.forEach(field => {
@@ -188,9 +264,15 @@ export default {
             };
 
             if (timeInSeconds % 60 == 0) {
-              let formatedLastMinAverageValue = field.changeUnitFunc(
-                this.averageResult(field.lastMinuteDatas)
-              );
+              let formatedLastMinAverageValue =
+                field.fieldName == "temperature"
+                  ? field.changeUnitFunc(
+                      this.averageResult(field.lastMinuteDatas)
+                    )
+                  : field.changeUnitFunc(
+                      this.averageResult(field.lastMinuteDatas),
+                      60
+                    );
 
               field.minuteAverageDatas.push({
                 x: timeInSeconds,
@@ -214,6 +296,8 @@ export default {
       }, 5000);
     },
 
+    //@vuese
+    //Start the 5 seconds interval that emit the event which allow the children to update.
     updateDatas() {
       window.setInterval(() => {
         EventHandler.$emit("updateDatas");
@@ -221,10 +305,15 @@ export default {
     },
 
     startStopChartUpdateDatas(chartId) {
+      //To let a chart know that it should restart/stop updating.
+      //Fire when the user toggle between "ALL DATAS" and "MIN AVERAGE".
+      //@arg 'chartId' => It is the argument that represent the chart that is wanted to be stopped.
       EventHandler.$emit("startStopChartUpdateDatas", chartId);
     },
 
     changeChartDatas(chartId) {
+      //To change chart's datas between all the datas and the average per minute.
+      //@arg 'chartId' => It is the argument that represent the chart that should change the displayed datas.
       EventHandler.$emit("changeChartDatas", chartId);
     }
   }

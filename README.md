@@ -1,29 +1,45 @@
 # meteologica-test
 
-## Project setup
-```
-npm install
-```
+## Description
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+This project have been created for an application for a job in [Meteologica](http://www.meteologica.com/).
 
-### Compiles and minifies for production
-```
-npm run build
-```
+It has been made in Vue.js using the vue-cli.
 
-### Run your tests
-```
-npm run test
-```
+## Followed Steps
 
-### Lints and fixes files
-```
-npm run lint
-```
+### Step 1
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+The first step was to load the datas from the .yml file and take one data every 5 seconds.
+
+### Step 2
+
+The second step was to deal with the chart and all the options that it has. The major problem was how to format the datas of the X-axis, that is to say, the time.
+
+### Step 3
+
+The third step was to calculate:
+
+- the temperature change from Kelvin to Celsius
+- the power change to energy from MW to kWh
+- the average per minute of each field
+
+### Step 4
+
+The fourth step was to manage the datas and chart updates. That means:
+
+- when both of them should be totally stopped
+- when the datas should continue being updated but the chart should stop
+- when both of then should continue being updated
+
+### Step 5
+
+The fifth step was to style the interface.
+
+### Step 6
+
+The sixth step was to refactor the code.
+
+### Step 7
+
+The final step was to document the code. For this purpose a new and nice package was used. This package calls [Vuese](https://github.com/vue-contrib/vuese) and the instructions that were followed can be found on [Vuese Tutorial](https://dev.to/berniwittmann/quick--easy-documentation-generation-for-vuejs-components-7k6)
