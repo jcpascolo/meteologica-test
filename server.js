@@ -8,30 +8,15 @@ const docs = express.Router();
 
 app.use(serveStatic(__dirname + "/dist"));
 
-app.use(
-  csp({
-    directives: {
-      // scriptSrc: [
-      //   `'self'`,
-      //   `'unsafe-inline'`,
-      //   `'unsafe-eval'`,
-      //   `unpkg.com/docute@4/dist/docute.js`
-      // ]
-      defaultSrc: [`'none'`]
-      // imgSrc: [`'self'`, `imgur.com`]
-    }
-  })
-);
-
 app.get("/docu/", function(req, res) {
-  res.sendFile(__dirname + "/dist/website/index.html");
+  res.sendFile(__dirname + "/dist/docs.html");
 });
 
 app.use("/components", docs);
 
 docs.get("/:filename", function(req, res) {
   const { filename } = req.params;
-  res.sendFile(__dirname + `/dist/website/components/${filename}`);
+  res.sendFile(__dirname + `/dist/components/${filename}`);
 });
 
 let port = process.env.PORT || 5000;
