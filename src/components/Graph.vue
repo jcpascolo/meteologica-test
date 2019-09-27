@@ -46,21 +46,21 @@ export default {
     //All minute averages that have been calculated from the loaded and transformed datas.
     averageMinuteData: Array,
 
-    //The final unit. It is used to display the unit is the chart.
+    //The final unit. It is used to display the unit in the chart.
     endUnit: String,
 
     //The title of the chart.
     chartTitle: String,
 
-    //The accuracy that is wanted to show about the datas on the chart.
+    //The accuracy which the datas must be displayed on the chart.
     decimals: [Number, String]
   },
   data() {
     return {
-      //It inform which datas must be displayed. True => prop allDatas || False => prop averageMinuteData.
+      //It informs which datas must be displayed. True => prop allDatas || False => prop averageMinuteData.
       showAllDatas: true,
 
-      //It inform if the chart should be updated.
+      //It informs if the chart should be updated.
       isStopped: false,
 
       //It has the datas that must be displayed. Apexchart nomenclature.

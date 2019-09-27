@@ -10,9 +10,9 @@ This is the Graph Component. I use ApexChart, an open-source modern charting lib
 |id|The id of the chart.|`Number` /  `String`|`false`|-|
 |allDatas|All loaded and transformed datas.|`Array`|`false`|-|
 |averageMinuteData|All minute averages that have been calculated from the loaded and transformed datas.|`Array`|`false`|-|
-|endUnit|The final unit. It is used to display the unit is the chart.|`String`|`false`|-|
+|endUnit|The final unit. It is used to display the unit in the chart.|`String`|`false`|-|
 |chartTitle|The title of the chart.|`String`|`false`|-|
-|decimals|The accuracy that is wanted to show about the datas on the chart.|`Number` /  `String`|`false`|-|
+|decimals|The accuracy which the datas must be displayed on the chart.|`Number` /  `String`|`false`|-|
 
 <!-- @vuese:Graph:props:end -->
 

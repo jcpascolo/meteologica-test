@@ -2,7 +2,7 @@
 
 ## Description
 
-This project have been created for an application for a job in [Meteologica](http://www.meteologica.com/).
+This project has been created for a job application in [Meteologica](http://www.meteologica.com/).
 
 It has been made in Vue.js using the vue-cli.
 
@@ -30,7 +30,7 @@ The fourth step was to manage the datas and chart updates. That means:
 
 - when both of them should be totally stopped
 - when the datas should continue being updated but the chart should stop
-- when both of then should continue being updated
+- when both of them should continue being updated
 
 ### Step 5
 
@@ -42,4 +42,4 @@ The sixth step was to refactor the code.
 
 ### Step 7
 
-The final step was to document the code. For this purpose a new and nice package was used. This package calls [Vuese](https://github.com/vue-contrib/vuese) and the instructions that were followed can be found on [Vuese Tutorial](https://dev.to/berniwittmann/quick--easy-documentation-generation-for-vuejs-components-7k6)
+The final step was to document the code. For this purpose a new and nice package was used. This package name is [Vuese](https://github.com/vue-contrib/vuese) and the instructions that were followed can be found on [Vuese Tutorial](https://dev.to/berniwittmann/quick--easy-documentation-generation-for-vuejs-components-7k6)

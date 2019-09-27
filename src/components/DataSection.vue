@@ -44,7 +44,7 @@
 </template>
 
 <script>
-//This is the information component. It display the last data that was taken from the file and the average of the last minute.
+//This is the information component. It displays the last data that was taken from the file and the average of the last minute.
 export default {
   name: "DataSection",
   props: {
@@ -60,12 +60,12 @@ export default {
     //The final unit.
     endUnit: String,
 
-    //The accuracy that is wanted to show about the datas.
+    //The accuracy which the datas must be displayed.
     decimals: [Number, String]
   },
   methods: {
     //@vuese
-    //To round the values that must be displayed to the accuracy that was indicated on the 'decimals' prop.
+    //To round the values that must be displayed with the accuracy that was indicated on the 'decimals' prop.
     //@arg 'num' => It is the number that is wanted to be rounded.
     roundNumber(num) {
       return +(Math.round(num + "e+" + this.decimals) + "e-" + this.decimals);

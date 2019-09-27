@@ -56,7 +56,7 @@ import Graph from "./components/Graph";
 import DataSection from "./components/DataSection";
 import ToggleButton from "./components/ToggleButton";
 
-//Multiples and submultiples of all unit of measurement.
+//Multiples and submultiples of all units of measurement.
 let changes = {
   m: 1e-3,
   c: 1e-2,
@@ -80,14 +80,14 @@ export default {
 
   data() {
     return {
-      //The array that contains one object per field that is on the .yml file.
-      //In that case we have two fields, temperature and power
+      //This array contains one object per field that is on the .yml file.
+      //In that case we have two fields, temperature and power.
       fields: []
     };
   },
 
   mounted() {
-    //At the begining we iterate throght de keys on the file, in this case only two, temperature and power
+    //At the begining we iterate through the keys of the file.
     Object.keys(Datas).forEach((field, index) => {
       //endUnit, changeUnitFunc, accuracy and chartTitle are hardcoded but in a real case
       //they could be in the data file and it would be scalable (more than two fields)
@@ -99,13 +99,13 @@ export default {
 
       //For each field we save
       this.fields.push({
-        //The id. It is useful to know wich chart should be stopped in case of stop updates.
+        //The id. It is useful in order to know which chart should be stopped in case of stopping the updates.
         id: index,
 
-        //The fielName. It is useful to find the right datas in the .yml file every 5 seconds (to know if we want the temperature or the power data).
+        //The fieldName. It is useful in order to find the right datas in the .yml file every 5 seconds (to know if we want the temperature or the power data).
         fieldName: field,
 
-        //The allLoadedDatas. It saves all the datas already transformed in the wanted unit.
+        //The allLoadedDatas. It saves all the datas already transformed in the wanted units.
         allLoadedDatas: [
           {
             x: this.hourToSecond(Datas[field].values[0].time),
@@ -142,10 +142,10 @@ export default {
         //The endUnit. It has the final unit that we want to achieve.
         endUnit,
 
-        //The changeUnitFunc. It has the function which transform the datas from startUnit to endUnit.
+        //The changeUnitFunc. It holds the function which transform the datas from startUnit to endUnit.
         changeUnitFunc,
 
-        //The lastValue. It save the last value taken form the file.
+        //The lastValue. It saves the last value taken form the file.
         lastValue: {
           time: Datas[field].values[0].time,
           originalData: Datas[field].values[0].value,
@@ -164,7 +164,7 @@ export default {
               : changeUnitFunc([parseFloat(Datas[field].values[0].value)], 60)
         },
 
-        //The accuracy. It has the accuracy of the values. It means, to which number of decimal it should be rounded.
+        //The accuracy. It has the accuracy of the values. This means, to which number of decimal it should be rounded.
         accuracy,
 
         //The title. It has the title of the chart.
@@ -173,7 +173,7 @@ export default {
         //The counter. It saves the index of the next data that should be taken from the file.
         counter: 1,
 
-        //The isTotallyStopped. If it is true it means that it must not be updated (all the fields of the field, even the chart).
+        //The isTotallyStopped. If it is true it means that nothing must be updated.
         isTotallyStopped: false
       });
     });
@@ -187,7 +187,7 @@ export default {
 
   methods: {
     //@vuese
-    //To transform the hour string that we recieve from the .yml file into seconds number.
+    //To transform the hour string that we recieve from the .yml file into seconds with type number.
     //@arg 'hour' => It is a String that recieve the hour in the format hh:mm:ss.
     hourToSecond(hour) {
       let dividedTime = hour.split(":");
@@ -199,9 +199,9 @@ export default {
     },
 
     //@vuese
-    //To changes between multiples and submultiples of a unit.
-    //@arg 'startUnit' => It is a String that recieve the initial unit.
-    //@arg 'endUnit' => It is a String that recieve the final unit.
+    //To change between multiples and submultiples of a unit.
+    //@arg 'startUnit' => It is a String that recieves the initial unit.
+    //@arg 'endUnit' => It is a String that recieves the final unit.
     changeUnit(startUnit, endUnit) {
       return endUnit == "unit"
         ? changes[startUnit.substr(0, startUnit.length - 1)] / changes["unit"]
@@ -231,7 +231,7 @@ export default {
     //@vuese
     //To change from MW power to kWh energy.
     //@arg 'power' => It has the Wattios power.
-    //@arg 'time' => It has the time in second to calculate the portion of hour.
+    //@arg 'time' => It has the time in seconds to calculate its proportion to an hour.
     powerToEnergy(power, time = 5) {
       let timeChangedToHour = parseInt(time, 10) / 3600;
       let change = this.changeUnit(Datas.power.unit, "kW");
@@ -297,7 +297,7 @@ export default {
     },
 
     //@vuese
-    //Start the 5 seconds interval that emit the event which allow the children to update.
+    //Starts the 5 seconds interval that emits the event which allows the children to update.
     updateDatas() {
       window.setInterval(() => {
         EventHandler.$emit("updateDatas");
@@ -305,15 +305,15 @@ export default {
     },
 
     startStopChartUpdateDatas(chartId) {
-      //To let a chart know that it should restart/stop updating.
-      //Fire when the user toggle between "ALL DATAS" and "MIN AVERAGE".
-      //@arg 'chartId' => It is the argument that represent the chart that is wanted to be stopped.
+      //To let a chart know that it should start/stop updating.
+      //Fire when the user toggles between "ALL DATAS" and "MIN AVERAGE".
+      //@arg 'chartId' => It is the argument that represents the chart that want to be stopped.
       EventHandler.$emit("startStopChartUpdateDatas", chartId);
     },
 
     changeChartDatas(chartId) {
-      //To change chart's datas between all the datas and the average per minute.
-      //@arg 'chartId' => It is the argument that represent the chart that should change the displayed datas.
+      //To change charts datas between all the datas and the average per minute.
+      //@arg 'chartId' => It is the argument that represents the chart that should change the displayed datas.
       EventHandler.$emit("changeChartDatas", chartId);
     }
   }

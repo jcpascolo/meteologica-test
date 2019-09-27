@@ -23,7 +23,7 @@ export default {
   },
   data() {
     return {
-      //It says which part of the button is actived.
+      //It indicates which part of the button is actived.
       isActive: true
     };
   }

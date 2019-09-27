@@ -1,7 +1,6 @@
 let express = require("express");
 let path = require("path");
 let serveStatic = require("serve-static");
-const csp = require(`helmet-csp`);
 
 app = express();
 const docs = express.Router();
